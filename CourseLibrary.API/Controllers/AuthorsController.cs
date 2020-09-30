@@ -19,9 +19,23 @@ namespace CourseLibrary.API.Controllers
                 throw new ArgumentNullException(nameof(courseLibraryRepository));
         }
 
+        [HttpGet]
         public IActionResult GetAuthors()
         {
             return Ok(courseLibraryRepository.GetAuthors());
+        }
+
+        [HttpGet("{authorId:guid}")]
+        public IActionResult GetAuthor(Guid authorId)
+        {
+            var author = courseLibraryRepository.GetAuthor(authorId);
+
+            if (author is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(author);
         }
     }
 }
