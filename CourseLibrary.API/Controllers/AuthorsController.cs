@@ -24,7 +24,6 @@ namespace CourseLibrary.API.Controllers
 
             _mapper = mapper ??
                 throw new ArgumentNullException(nameof(mapper));
-
         }
 
         [HttpGet]
