@@ -47,6 +47,19 @@ namespace CourseLibrary.API
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseExceptionHandler(appBuilder =>
+                {
+                    appBuilder.Run(async context =>
+                    {
+                        context.Response.StatusCode = 500;
+                        await context.Response.WriteAsync("An unexpected faul happend. Try again later.");
+
+                        // TODO: Log fault here
+                    });
+                });
+            }
 
             app.UseRouting();
 
