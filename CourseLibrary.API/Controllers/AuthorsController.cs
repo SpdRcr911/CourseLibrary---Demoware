@@ -1,4 +1,5 @@
-﻿using CourseLibrary.API.Helpers;
+﻿using AutoMapper;
+using CourseLibrary.API.Helpers;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -14,43 +15,36 @@ namespace CourseLibrary.API.Controllers
     [Route("api/authors")]
     public class AuthorsController : ControllerBase
     {
-        private readonly ICourseLibraryRepository courseLibraryRepository;
-        public AuthorsController(ICourseLibraryRepository courseLibraryRepository)
+        private readonly ICourseLibraryRepository _courseLibraryRepository;
+        private readonly IMapper _mapper;
+        public AuthorsController(ICourseLibraryRepository courseLibraryRepository, IMapper mapper)
         {
-            this.courseLibraryRepository = courseLibraryRepository ??
+            _courseLibraryRepository = courseLibraryRepository ??
                 throw new ArgumentNullException(nameof(courseLibraryRepository));
+
+            _mapper = mapper ??
+                throw new ArgumentNullException(nameof(mapper));
+
         }
 
         [HttpGet]
-        public IActionResult GetAuthors()
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
         {
-            var authorsFromRepo = courseLibraryRepository.GetAuthors();
-            var authors = new List<AuthorDto>();
-
-            foreach (var author in authorsFromRepo)
-            {
-                authors.Add(new AuthorDto()
-                {
-                    Id = author.Id,
-                    Name = $"{author.FirstName} {author.LastName}",
-                    MainCategory = author.MainCategory,
-                    Age = author.DateOfBirth.GetCurrentAge()
-                });
-            }
-            return Ok(authors);
+            var authorsFromRepo = _courseLibraryRepository.GetAuthors();
+            return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
         }
 
         [HttpGet("{authorId:guid}")]
-        public IActionResult GetAuthor(Guid authorId)
+        public ActionResult<AuthorDto> GetAuthor(Guid authorId)
         {
-            var author = courseLibraryRepository.GetAuthor(authorId);
+            var author = _courseLibraryRepository.GetAuthor(authorId);
 
             if (author is null)
             {
                 return NotFound();
             }
 
-            return Ok(author);
+            return Ok(_mapper.Map<AuthorDto>(author));
         }
     }
 }
