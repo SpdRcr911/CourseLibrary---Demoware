@@ -118,19 +118,34 @@ namespace CourseLibrary.API.Controllers
             var courseForAuthorFromRepo = _courseLibraryRepository.GetCourse(authorId, courseId);
             if (courseForAuthorFromRepo is null)
             {
-                return NotFound();
+                var courseDto = new CourseForUpdateDto();
+                patchDocument.ApplyTo(courseDto, ModelState);
+                if (!TryValidateModel(courseDto))
+                {
+                    return ValidationProblem(ModelState);
+                }
+
+                var courseToAdd = _mapper.Map<Entities.Course>(courseDto);
+                courseToAdd.Id = courseId;
+
+                _courseLibraryRepository.AddCourse(authorId, courseToAdd);
+                _courseLibraryRepository.Save();
+
+                var courseToReturn = _mapper.Map<CourseDto>(courseToAdd);
+
+                return CreatedAtRoute("GetCourseForAuthor", new { authorId, courseId = courseToReturn.Id }, courseToReturn);
             }
 
-            var courseToPath = _mapper.Map<CourseForUpdateDto>(courseForAuthorFromRepo);
+            var courseToPatch = _mapper.Map<CourseForUpdateDto>(courseForAuthorFromRepo);
             
-            patchDocument.ApplyTo(courseToPath, ModelState);
+            patchDocument.ApplyTo(courseToPatch, ModelState);
 
-            if (!TryValidateModel(courseToPath))
+            if (!TryValidateModel(courseToPatch))
             {
                 return ValidationProblem(ModelState);
             }
 
-            _mapper.Map(courseToPath, courseForAuthorFromRepo);
+            _mapper.Map(courseToPatch, courseForAuthorFromRepo);
 
             _courseLibraryRepository.UpdateCourse(courseForAuthorFromRepo);
             _courseLibraryRepository.Save();
